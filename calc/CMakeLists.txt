@@ -14,3 +14,6 @@ target_link_libraries(calc-cli calc)
 
 add_executable(calc-test src/test.cpp)
 target_link_libraries(calc-test calc)
+
+enable_testing()
+add_test(calc-test calc-test)
