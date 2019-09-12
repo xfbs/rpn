@@ -3,7 +3,7 @@ MKDIR	= mkdir -p
 CMAKE	= cmake
 RM		= rm -rf
 
-all: index.pdf
+all: calc index.pdf
 
 index.pdf: index.tex
 	$(LATEX) --shell-escape $<
