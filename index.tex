@@ -114,10 +114,8 @@ There is example code in the \verb|calc| folder in this repository with working 
 After every sequence of tokens, it prints out the entire stack, making examining the state very easy.
 
 \begin{verbatim}
-$ cd calc/
-$ mkdir build && cd build/
-$ cmake .. && make
-$ ./calc-cli
+$ make calc
+$ .calc/build/calc-cli
 > 1 2 +
 3
 > 3 4 +
