@@ -18,3 +18,9 @@ DC
 Lua
 PostScript
 Forth
+
+## PostScript
+
+* *The PostScript Programming Language*. Small overview of what PostScript is and tutorial on how to use it. <http://www.cburch.com/csbsju/cs/portfolio/postscript.pdf>.
+* *PostScript Language Tutorial and Cookbook*. Book about using PostScript to generate graphics. <https://www-cdf.fnal.gov/offline/PostScript/BLUEBOOK.PDF>.
+* *PostScript Language Reference, Third Edition*. Comprehensive Manual and Reference on PostScript by Apple. <https://www.adobe.com/content/dam/acom/en/devnet/actionscript/articles/PLRM.pdf>.

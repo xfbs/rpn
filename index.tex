@@ -10,7 +10,7 @@
 \usepackage{minted}
 \usepackage{hyperref}
 
-\title{Reverse Polish Notation and Stack Machines}
+\title{Reverse Polish Notation:\\A Gentle Introduction to Stack Machines}
 \author{Patrick M. Elsen <pelsen@xfbs.net>}
 \date{\today}
 
@@ -153,8 +153,20 @@ $ dc -e "1 2 3 + + p"
 6
 \end{verbatim}
 
-Looking at the manual page, it becomes evident that it can do a lot more than that. 
+It can do quite a lot more than just adding numbers and printing the result. 
 
+
+\subsection{PostScript}
+
+PostScript is one of those things that people normally don't ever run into, but it's also quite fascinating. Back in the 80ies when Adobe was one of the pioneers of digital printing, they needed some way to send data to printers in an efficient manner.
+
+When you want to print a page, you can render it into a large image and send that off. This is not a particularily great idea, however. If we look at A4, which is the standard paper size you will find in printers, they have a size of 200mm $\times$ 283. Printing is often done at a resolution of 300 or 600 DPI. At this resolution, a whole document would take about 4 GB to be represented.
+
+The idea with PostScript is that instead of rendering a document as an image locally and sending the (potentially large) image to the printer, we can generate a PostScript program that will generate it, and this can be run on the printer itself.
+
+Such a program can be considerably smaller, especially for documents that consist of text and vector drawings.
+
+PostScript is implemented as a stack machine. But unlike our small \textsc{rpn} calculator, it is a fairly powerful programming language, supporting functions, variables, arrays and dictionaries.
 
 \section{Generating}
 

@@ -7,6 +7,7 @@ all: calc index.pdf
 
 index.pdf: index.tex
 	$(LATEX) --shell-escape $<
+	$(LATEX) --shell-escape $<
 
 calc: calc/build/calc-cli
 

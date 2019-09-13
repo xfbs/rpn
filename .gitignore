@@ -4,3 +4,4 @@
 *.toc
 _minted-index
 .texpadtmp
+.DS_Store
