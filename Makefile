@@ -20,6 +20,7 @@ index.zip: $(FILES) index.pdf
 	$(ZIP) $@ $^
 
 release.pdf: index.pdf index.zip
+	$(POLYGLOT) pdfzip --pdffile index.pdf --zipfile index.zip $@
 
 calc: calc/build/calc-cli
 
@@ -38,5 +39,7 @@ clean:
 	$(RM) *.out
 	$(RM) calc/build
 	$(RM) parse/build
+	$(RM) index.zip
+	$(RM) _minted-index
 
 .PHONY: calc

@@ -19,6 +19,20 @@
 \maketitle
 \tableofcontents
 
+\section*{Introduction}
+
+Stack Machines are a good way to get acquainted with computing concepts because they are very accessible and typically simpler to work with than register machines. Reverse Polish Notation is not only historically interesting due to its use in a lot of early calculators, but also in practise due to the simplicity with which they can be implemented.
+
+This article gives the reader an introduction to both by providing examples and easy challenges that can be completed. It assumes some background in computer science, knowledge of using command-line utilities and some programming knowledge in C++.
+
+Following the example of  poc||gtfo, this \textsc{pdf} is also a valid \textsc{zip} file, containing code discussed here and the source code to this very article. Use the \verb|unzip| command to extract this information.
+
+\begin{verbatim}
+$ unzip rpn.pdf
+\end{verbatim}
+
+Find the latest version of this at \href{https://github.com/xfbs/rpn}{github.com/xfbs/rpn} and feel free to redistribute as you like.
+
 \section{Overview}
 
 Reverse Polish Notation is a way to write down equations without needing to use brackets or precedence rules. This greatly simplifies parsing. For this reason, reverse polish notation has been quite popular with Casio calculators.
@@ -29,7 +43,7 @@ Take a simple mathematical equation with the four primitive operators — additi
   \frac{(1 + 2) * (7 - 3)}{2 * 6}
 \end{equation}
 
-The rules dictate the order in which the operations should be executed, and brackets can be used to override those rules where necessary. For example, $1 + 2 * 2 - 3$ is equivalent to $1 + (2 * 2) - 3$, because multiplication has higher precedence than addition. The PEDMAS mnemonic is a good way to remember the order of precedence: \emph{parentheses, exponentiation, division, multiplication, addition, subtraction}. 
+The rules dictate the order in which the operations should be executed, and brackets can be used to override those rules where necessary. For example, $1 + 2 * 2 - 3$ is equivalent to $1 + (2 * 2) - 3$, because multiplication has higher precedence than addition. The \textsc{pedmas} mnemonic is a good way to remember the order of precedence: \emph{parentheses, exponentiation, division, multiplication, addition, subtraction}. 
 
 This equation could be represented in reverse polish notation as well.
 
@@ -135,6 +149,12 @@ $ .calc/build/calc-cli
 This particular interpreter only supports the four basic math operators, but it is very simple to extend the code to make it support more.
 
 In fact, there are existing reverse polish notation interpreters and compilers that support a lot more. There's even one on your printer right now -- we'll get to that one in a bit.
+
+\subsection*{Exercises}
+
+Can you add $\^$ as exponentiation operator to the interpreter? Hint: create a class named \verb|Exp()|, add a \verb|Exp::execute(...)| method and add it to the parser.
+
+\section{Implementations}
 
 \subsection{DC}
 
