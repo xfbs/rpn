@@ -16,7 +16,7 @@ index.pdf: index.tex
 	$(LATEX) --shell-escape $<
 	$(LATEX) --shell-escape $<
 
-index.zip: $(FILES) index.pdf
+index.zip: $(FILES)
 	$(ZIP) $@ $^
 
 release.pdf: index.pdf index.zip
