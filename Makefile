@@ -56,5 +56,6 @@ clean:
 	$(RM) calc/build
 	$(RM) parse/build
 	$(RM) index.zip
+	$(RM) index.pdf
 	$(RM) _minted-index
 	$(RM) release.pdf
