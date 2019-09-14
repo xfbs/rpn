@@ -1,10 +1,25 @@
+# target all (default):
+# generate article into index.pdf, using lualatex, pack up source code files
+# into a zip file
+#
+# for zip file creation, uses -X option to disable extended attributes — this
+# means we don't store access time, which allows for reproducible zip files
+# (somewhat).
+#
+# target build:
+# build the example source code. needs to have cmake and a compiler installed.
+# output goes to rpn-calc/build.
+#
+# target release.pdf:
+# build release pdf file which is also a zip archive of the source/example code
+# needs to have truepolyglot, provide the path to it via the POLYGLOT env var.
+
 LATEX	= lualatex
 MKDIR	= mkdir -p
 CMAKE	= cmake
 RM		= rm -rf
-FILES	= $(shell find rpn-calc/src rpn-calc/include rpn-parse/src rpn-parse/src)
 FILES	= $(shell git ls-files "*.md" "*.tex" "*.cpp" "*.txt" "*.h" "Makefile") _tag.tex
-ZIP		= zip
+ZIP		= zip -X
 GIT		= git
 POLYGLOT= ../truepolyglot/truepolyglot
 
@@ -42,3 +57,4 @@ clean:
 	$(RM) parse/build
 	$(RM) index.zip
 	$(RM) _minted-index
+	$(RM) release.pdf
