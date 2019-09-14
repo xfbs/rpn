@@ -8,7 +8,12 @@
 \usepackage{tikz-qtree}
 \usetikzlibrary{shapes,patterns,positioning}
 \usepackage{minted}
-\usepackage{hyperref}
+\usepackage[
+  colorlinks,
+  linkcolor={red!40!black},
+  citecolor={blue!60!black},
+  urlcolor={blue!60!black}
+]{hyperref}
 
 \title{Reverse Polish Notation:\\A Gentle Introduction to Stack Machines}
 \author{Patrick M. Elsen <pelsen@xfbs.net>}
@@ -39,43 +44,15 @@ Reverse Polish Notation is a way to write down equations without needing to use 
 
 Take a simple mathematical equation with the four primitive operators — addition, subtraction, multiplication and division.
 
-\begin{equation}
+\begin{equation}\label{eqn:simpleeqn}
   \frac{(1 + 2) * (7 - 3)}{2 * 6}
 \end{equation}
 
-The rules dictate the order in which the operations should be executed, and brackets can be used to override those rules where necessary. For example, $1 + 2 * 2 - 3$ is equivalent to $1 + (2 * 2) - 3$, because multiplication has higher precedence than addition. The \textsc{pedmas} mnemonic is a good way to remember the order of precedence: \emph{parentheses, exponentiation, division, multiplication, addition, subtraction}. 
+The rules dictate the order in which the operations should be executed, and brackets can be used to override those rules where necessary. For example, in the expression $1 + 2 * 7 - 3$, the multiplication of 2 and 7 would be evaluated first, and only then would the additions and multiplications be evaluated, because multiplication has a higher precedence.
 
-This equation could be represented in reverse polish notation as well.
+This precedence can be overridden by using parentheses, to force addition to be evaluated before multiplicatiom. The \textsc{pedmas} mnemonic is a good way to remember the order of precedence: \emph{parentheses, exponentiation, division, multiplication, addition, subtraction}. 
 
-\begin{equation}
-1\quad2\quad+\quad7\quad3\quad-\quad*\quad2\quad6\quad*\quad/  
-\end{equation}
-
-To the uninitiated, this might seem strange, because the properties of this are not yet clear. When evaluating this, it goes strictly from left to right. Numbers are treated as data and placed on an imagined stack. Operators like $+$ (addition) consume data (numbers) from the stack, and place their results back on it. Thus, evaluating a sequence like $1\quad2\quad+$ would go like such.
-
-\begin{table}[h!]
-\begin{tabular}{@{}clp{4cm}@{}}
-\toprule
-Operation & Stack & Comment\\
-\midrule
-1 & 1 & Place 1 on stack.\\
-2 & 1, 2 & Place 2 on stack.\\
-$+$ & 3 & Add last two numbers on stack.\\
-7 & 3, 7\\
-3 & 3, 7, 3\\
-- & 3, 4\\
-* & 12\\
-2 & 12, 2\\
-5 & 12, 2, 6\\
-* & 12, 12\\
-/ & 1\\
-\bottomrule  
-\end{tabular}
-\end{table}
-
-The last result that is left on the stack is the result of the calculation, in this case 1.
-
-Another way to think about reverse polish notation is that equations are basically tree structures, and reverse polish notation is just another way to represent the tree.
+In our mind, we can parse this equation into a tree that represents the order of operations.
 
 \begin{center}
 \begin{tikzpicture}
@@ -83,9 +60,67 @@ Another way to think about reverse polish notation is that equations are basical
 \end{tikzpicture}
 \end{center}
 
+If we think about trees, then the way we write down equations normally is called the \emph{inorder} notation, meaning that we write down the nodes in the order in which they appear in the tree, from left to right.
+
+\begin{center}
+\begin{tikzpicture}
+\Tree [.add 1 [.mul 2 3 ] ];
+\node (abc) at (2,0) {$\to \quad 1 + 2 * 3$};
+\end{tikzpicture}
+\end{center}
+
+This is somewhat intuitive for humans to parse because there is higher locality. But this format also has some issues with it, in that it needs to be parsed and precedence to be applied before it can be executed. Imagine parsing an equation like $1 + 2 * 3$. You have to parse the \emph{entire} equation first, because there might always be a higher-precedented operation after.
+
+When using reverse polish notation, you simply rearrange the equations to something called the \emph{postorder}. This means that the child nodes are put first, and then the parent nodes.
+
+\begin{center}
+\begin{tikzpicture}
+\Tree [.mul [.add 1 2 ] 3 ];
+\node (abc) at (2.5,0) {$\to\quad1\quad2\quad+\quad3\quad*$};
+\end{tikzpicture}
+\end{center}
+
+The advantage of this is immediately obvious: it becomes possible to execute this without parsing the entire thing. The way this is executed is by using a stack. 
+
+When executing this, imagine going through a stream of the tokens $[1, 2, +, 3, *]$. Execution starts at the first token, a 1. This is data, and thus it is placed on the stack. Then the next token is encountered, a 2. This, again, is data and thus placed on the stack. Thus far, the stack contain $[1, 2]$ on it. Next, $+$ is encountered, which is an operation that takes two operands. Thus, the last two items are popped from the stack, added, and the result pushed back on it. Thus, at this point, the stack contains only $[3]$. Visually, this means that we have simplified the expression tree as such:
+
+\begin{center}
+\begin{tikzpicture}
+\Tree [.mul 3 3 ];
+\end{tikzpicture}
+\end{center}
+
+Next, we encounter the token 3, which again, is data and is pushed on the stack. The stack now contains $[3, 3]$, where the first three is the result of the addition, and the second three is data. Lastly, a $*$ is encountered, which is a multiplication operation, which takes two items off the stack, multiplies them, and pushes the result, a 9, back onto the stack.
+
+\begin{table}[h!]
+\centering
+\caption{Executing a simple RPN}\label{tlb:simplerpn}
+\begin{tabular}{@{}clp{5cm}@{}}
+\toprule
+Token & Stack & Comment\\
+\midrule
+1 & 1 & Push 1 onto the stack.\\
+2 & 1, 2 & Push 2 onto the stack.\\
+$+$ & 3 & Adds last two items on stack.\\
+3 & 3, 3 & Push 3 onto the stack.\\
+$*$ & 9 & Multiplies last two items on stack.\\
+\bottomrule  
+\end{tabular}
+\end{table}
+
+Table \ref{tlb:simplerpn} illustrates this process in a more organised way. With this knowledge, Equation \ref{eqn:simpleeqn} can be transformed into reverse polish notation rather easily:
+
+\begin{equation}
+1\quad2\quad+\quad7\quad3\quad-\quad*\quad2\quad6\quad*\quad/  
+\end{equation}
+
+In a sense, reverse polish notation forms a sort of bridge between the world of mathematics and the world of computer science, because reverse polish notation is both a way to represent equations and a kind of instruction stream that can be processed by a virtual stack machine to evaluate it.
+
 \section{Evaluating}
 
-With the knowledge of how reverse polish notation looks like, it's fairly trivial to parse and interpret it. Given a function that splits a string into individual tokens, and some classes to represent the operations, parsing RPN is as simple as a few if statements.
+As we have seen previously, reverse polish notation is very simple to evaluate. We can examine this by writing a small interpreter for it, that only supports some very basic mathematical operations.
+
+Taking an input stream and splitting it into tokens (separated by spaces) is very simple in C++. Parsing these tokens, as \verb|std::string tok|, can be done with a function as simple as this:
 
 \begin{minted}{cpp}
 if(tok == "+") {
@@ -101,9 +136,11 @@ if(tok == "+") {
 return new Num(std::stod(tok));
 \end{minted}
 
-To represent the stack, the C++ \verb|std::deque<double>| is a good candidate, because it acts like a stack (meaning that it has efficient pop and push operations) but it also allows index-based access to elements, which is useful for displaying the stack.
+Every token is either an operator or a number. For the uninitiated, \verb|std::stod()| is a C++ function to parse a (decimal) number from a string, and \verb|Add()|, \verb|Mul()|, \verb|Sub()|, \verb|Div()| all subclasses of an abstract operation class.
 
-With this in mind, the execute functions for the number token can look somewhat like this, simply pushing the data onto the stack.
+To represent the stack, the C++ \verb|std::deque<double>| is a good candidate, because it has efficient pop and push operations, but it also allows index-based access to elements, which is useful for displaying the stack.
+
+With this in mind, the execute functions for the number token can look somewhat like this, simply pushing the number that it was constructed with onto the stack.
 
 \begin{minted}{cpp}
 void Num::execute(std::deque<double> &s) {                                                                                                                                                           
@@ -111,7 +148,7 @@ void Num::execute(std::deque<double> &s) {
 }  
 \end{minted}
 
-Similarly, the other operations can be implemented, by popping values off the stack and pushing the result back onto it.
+Similarly, the other operations can be implemented, by popping values off the stack and pushing the result back onto it. Here is the addition, implemented by taking the last two numbers off the stack, and pushing the result of the addition back onto it.
 
 \begin{minted}{cpp}
 void Add::execute(std::deque<double> &s) {
@@ -123,13 +160,13 @@ void Add::execute(std::deque<double> &s) {
 }  
 \end{minted}
 
-There is example code in the \verb|calc| folder in this repository with working code that acts as a little reverse polish notation parser. Compiling that and playing with it might help.
+There is working example code in the \verb|rpn-calc| folder in this repository with working code that acts as a little reverse polish notation parser.
 
 After every sequence of tokens, it prints out the entire stack, making examining the state very easy.
 
 \begin{verbatim}
-$ make calc
-$ .calc/build/calc-cli
+$ make rpn-calc
+$ ./rpn-calc/build/calc-cli
 > 1 2 +
 3
 > 3 4 +
@@ -152,19 +189,29 @@ In fact, there are existing reverse polish notation interpreters and compilers t
 
 \subsection*{Exercises}
 
-Can you add $\^$ as exponentiation operator to the interpreter? Hint: create a class named \verb|Exp()|, add a \verb|Exp::execute(...)| method and add it to the parser.
+\begin{enumerate}
+  \item Compile the \verb|rpn-calc| tool from the code in this repository. If you don't have the code, you can extract it from this \textsc{pdf} file as documented in the introduction. Run the \verb|calc-cli| tool and try out some expressions like \verb|1 2 +|.
+  \item Can you translate $1 * 3^{6 - 1} + \frac{2}{4}$ into reverse polish notation?
+  \item Can you add \verb|^| as exponentiation operator to the interpreter? Hint: create a class named \verb|Exp()|, add an \verb|Exp::execute(...)| method and add it to the parser.
+\end{enumerate}
 
 \section{Implementations}
 
+While it's always good fun and educational to implement reverse polish notation interpreters ourselves, it is perhaps more interesting to examine existing implementations that are already sitting on your system. We can take a look at three particular implementations — \textsc{gnu dc}, Adobe PostScript and Forth. If none of these ring any bells, don't worry. 
+
 \subsection{DC}
 
-DC might just be the oldest and yet most universal reverse polish notation interpreter. Its name is an acronym for \emph{desktop calculator}, and that is exactly what it does.
+There are some utilities sitting on almost every \textsc{unix}-like system\footnote{which is most systems these days, taking macOS, iOS and Android into account} that rarely anyone has ever had the pleasure to interact with directly, and yet they have great power.
 
-You can pop open the manual page for \verb|dc| to get a bit of information about it.
+Out of those obscure utilities, we will take a look at one of them: \textsc{dc}. It might just be the oldest and yet most universal reverse polish notation interpreter — but I don't have references on that. There is only one place where you might have stumbled across it, and that is StackOverflow Code Golfing. It is definitely an esoteric language\footnote{\url{https://esolangs.org/wiki/Dc}}, which, if you are into that kinda stuff, makes it even more interesting.
+
+ Its name is an acronym for \emph{desktop calculator}, and that is exactly what it does. You can and should pop open the manual page for \verb|dc| to get a bit of information about it, as well as a command reference.
 
 \begin{verbatim}
 $ man dc
 \end{verbatim}
+
+I won't really be explaining all of what it can do, but we can take a look at some 
 
 It looks really quite cryptic, especially because it is character-based. It can do simple addition like we did before. One difference is that it does not implicitly print the stack -- but the \verb|p| command exists to print the stack.
 
@@ -173,12 +220,24 @@ $ dc -e "1 2 3 + + p"
 6
 \end{verbatim}
 
-It can do quite a lot more than just adding numbers and printing the result. 
+It can do quite a lot more than just adding numbers and printing the result. At this point, we have to leave mathematics a bit behind on this journey, because \textsc{dc} supports some more traditional programming constructs that one would hardly find directly in equations, such as dictionaries and lists.
 
+
+
+are leaving mathematics behind a bit and entering into computer science, because 
+
+\subsubsection*{Exercises}
+
+\begin{enumerate}
+  \item Write a \textsc{dc} script that will find the sum of numbers from 1 to 100.
+  \item Write a \textsc{dc} script that will find the first 100 prime numbers.
+\end{enumerate}
 
 \subsection{PostScript}
 
-PostScript is one of those things that people normally don't ever run into, but it's also quite fascinating. Back in the 80ies when Adobe was one of the pioneers of digital printing, they needed some way to send data to printers in an efficient manner.
+PostScript is another one of those things that most people haven't ever heard of or used. But unlike \textsc{dc}, this is something you may very well have used.
+
+Back in the 80ies when Adobe was one of the pioneers of digital printing, they needed some way to send data to printers in an efficient manner.
 
 When you want to print a page, you can render it into a large image and send that off. This is not a particularily great idea, however. If we look at A4, which is the standard paper size you will find in printers, they have a size of 200mm $\times$ 283. Printing is often done at a resolution of 300 or 600 DPI. At this resolution, a whole document would take about 4 GB to be represented.
 
@@ -188,13 +247,41 @@ Such a program can be considerably smaller, especially for documents that consis
 
 PostScript is implemented as a stack machine. But unlike our small \textsc{rpn} calculator, it is a fairly powerful programming language, supporting functions, variables, arrays and dictionaries.
 
+\subsubsection*{Exercises}
+
+\begin{enumerate}
+  \item Install GhostScript on your local system (if you are on macOS, it should come preinstalled, otherwise check your package manager).
+
+    Run some of the PostScript files present in the \verb|postscript| directory. 
+  \item Can you write a function that will compute the largest common multiple of two numbers?
+\end{enumerate}
+
+\subsection{Forth}
+
+After having taken a look at \textsc{dc} and PostScript, which are both interpreted, higher-level languages, we can now look into a slightly different direction and examine another oddity out of the programming languages world, Forth. 
+
 \section{Generating}
 
-Reverse polish notation is
+Now that we know what reverse polish notation is (the \emph{postorder} of a tree) and how we can interpret it (by working through a stream of tokens), the last interesting aspect that is left is to find out how we can generate reverse polish notation from regular infix notation. 
 
+We have already discussed the parse tree, and this is exactly how we translate from one format into another.
 
-Reverse polish notation in dc
+In the \verb|rpn-gen| folder you will find a parser, written in C++, that will emit reverse polish notation (in a format that \verb|rpn-calc| understands). 
 
+\subsection*{Exercises}
+
+\begin{enumerate}
+  \item Can you implement parsing of exponentiation, such that \verb|1 ^ 2| generates \verb|1 2 ^|?
+  \item Why does the parser have to parse the entire tree before it can generate \textsc{rpn}?
+\end{enumerate}
+
+\section{Conclusion}
+
+Reverse Polish Notation is an interesting format because it is very accessible — having no complex syntax, parsing or precedence rules. This is what makes it interesting for hackers writing their own little custom interpreters or for people new in the field.
+
+We have also seen that it is not 
+
+The disadvantage of \textsc{rpn} is that the code is not as readable.
 
 
 \end{document}
