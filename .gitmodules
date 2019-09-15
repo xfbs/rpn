@@ -1,0 +1,3 @@
+[submodule "truepolyglot"]
+	path = truepolyglot
+	url = https://git.hackade.org/truepolyglot.git/

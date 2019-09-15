@@ -21,7 +21,7 @@ RM		= rm -rf
 FILES	= $(shell git ls-files "*.md" "*.tex" "*.cpp" "*.txt" "*.h" "Makefile") _tag.tex
 ZIP		= zip -X
 GIT		= git
-POLYGLOT= ../truepolyglot/truepolyglot
+POLYGLOT= truepolyglot/truepolyglot
 
 all: index.pdf index.zip
 
