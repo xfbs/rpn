@@ -2,6 +2,9 @@
 *.log
 *.out
 *.toc
+*.bbl
+*.bcf
+*.blg
 _minted-index
 .texpadtmp
 .DS_Store

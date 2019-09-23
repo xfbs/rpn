@@ -30,9 +30,8 @@ build: rpn-calc/build/calc-cli rpn-gen
 
 index.pdf: index.tex _tag.tex
 	$(LATEX) --shell-escape $<
-	$(BIBER) $<
+	$(BIBER) $(<:%.tex=%)
 	$(LATEX) --shell-escape $<
-	$(BIBER) $<
 	$(LATEX) --shell-escape $<
 
 index.zip: $(FILES)
@@ -56,7 +55,9 @@ clean:
 	$(RM) *.aux
 	$(RM) *.toc
 	$(RM) *.log
-	$(RM) *.out
+	$(RM) *.bbl
+	$(RM) *.bcf
+	$(RM) *.blg
 	$(RM) calc/build
 	$(RM) parse/build
 	$(RM) index.zip
