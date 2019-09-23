@@ -4,6 +4,9 @@
 \usepackage{xcolor}
 \usepackage{listings}
 \usepackage{microtype}
+\usepackage{syntax}
+\usepackage{amsmath}
+\usepackage[backend=biber]{biblatex}
 \usepackage{tikz}
 \usepackage{tikz-qtree}
 \usetikzlibrary{shapes,patterns,positioning}
@@ -14,6 +17,8 @@
   citecolor={blue!60!black},
   urlcolor={blue!60!black}
 ]{hyperref}
+
+\addbibresource{references.bib}
 
 \title{Reverse Polish Notation:\\A Gentle Introduction to Stack Machines}
 \author{Patrick M. Elsen <pelsen@xfbs.net>}
@@ -37,12 +42,11 @@ Following the example of  poc||gtfo, this \textsc{pdf} is also a valid \textsc{z
 \begin{verbatim}
 $ unzip rpn.pdf
 \end{verbatim}
-
-Find the latest version of this at \href{https://github.com/xfbs/rpn}{github.com/xfbs/rpn} and feel free to redistribute as you like.
+Find the latest version of this article at \href{https://github.com/xfbs/rpn}{github.com/xfbs/rpn} and feel free to redistribute as you like.
 
 \section{Overview}
 
-Reverse Polish Notation is a way to write down equations without needing to use brackets or precedence rules. This greatly simplifies parsing. For this reason, reverse polish notation has been quite popular with Casio calculators.
+Reverse Polish Notation is a way to write down equations without needing to use brackets or precedence rules. This greatly simplifies parsing. For this reason, reverse polish notation has been quite popular with  Hewlett-Packard calculators\footnote{In fact, all of the desktop and hand-held calculators produced in the 70ies and 80ies by  Hewlett-Packard used Reverse-Polish Notation.}.
 
 Take a simple mathematical equation with the four primitive operators — addition, subtraction, multiplication and division.
 
@@ -58,9 +62,12 @@ In our mind, we can parse this equation into a tree that represents the order of
 
 \begin{center}
 \begin{tikzpicture}
-\Tree [.div [.mul [.add 1 2 ] [.sub 2 3 ] ] [.mul 2 5 ] ]
+\Tree [.div [.mul [.add 1 2 ] [.sub 7 3 ] ] [.mul 2 5 ] ]
 \end{tikzpicture}
 \end{center}
+
+In this tree notation, operations are performed bottom-up. The addition of 1 and 2 and the subtraction of 3 from 7 are performed first, the results of that multiplied, et cetera.
+
 
 If we think about trees, then the way we write down equations normally is called the \emph{inorder} notation, meaning that we write down the nodes in the order in which they appear in the tree, from left to right.
 
@@ -118,11 +125,68 @@ Table \ref{tlb:simplerpn} illustrates this process in a more organised way. With
 
 In a sense, reverse polish notation forms a sort of bridge between the world of mathematics and the world of computer science, because reverse polish notation is both a way to represent equations and a kind of instruction stream that can be processed by a virtual stack machine to evaluate it.
 
-\section{Evaluating}
+\subsection*{Exercises}
 
-As we have seen previously, reverse polish notation is very simple to evaluate. We can examine this by writing a small interpreter for it, that only supports some very basic mathematical operations.
+\begin{enumerate}
+  \item Convert the following equations to \textsc{rpn}.
+  \begin{align*}
+    &{1 * 2}^{9 - 2} &
+    \frac{9 - 2 - 3 + 4}{5 * 2}
+  \end{align*}
+  
+  \item Calculate the result of the following \textsc{rpn} equation.
+  \begin{equation*}
+    355\quad113\quad/\quad2\quad*\quad30\quad11\quad6\quad/\quad+\quad*
+  \end{equation*}
+\end{enumerate}
 
-Taking an input stream and splitting it into tokens (separated by spaces) is very simple in C++. Parsing these tokens, as \verb|std::string tok|, can be done with a function as simple as this:
+\section{Interpreting Reverse Polish Notation}
+
+As explained previously, reverse polish notation is very simple to evaluate. This can be demonstrated by writing an interpreter for it that supports only some simple mathematical operations.
+
+Let us define a simple syntax for a reverse polish notation that only supports numbers and four simple math operators. To make it as simple to parse as possible, a space has to be between every one of the tokens.
+
+\setlength{\grammarindent}{4em}
+\begin{grammar}
+
+<program> ::= <token> <space> <program>
+              \alt <token>
+
+<token> ::= <number> | <operator>
+
+<number> ::= <digit> <number> | <digit>
+
+<digit> ::= ‘0’ | ‘1’ | ‘2’ | ‘3’ | ‘4’ | ‘5’
+\alt ‘6’ | ‘7’ | ‘8’ | ‘9’
+
+<space> ::= ‘ ’ 
+
+\end{grammar}
+
+An example program that follows this grammar might look like in equation (2).
+\begin{equation}
+1\quad2\quad+\quad7\quad3\quad-\quad*\quad2\quad6\quad*\quad/  
+\end{equation}
+
+The C++ standard library offers facilities for splitting a string into space-separated tokens.
+
+\begin{minted}{cpp}
+#include <iostream>
+#include <sstream>
+#include <string>
+
+int main() {
+    std::string program = "1 2 + 7 3 - *";
+    std::istringstream iss(program);
+    std::string token;
+
+    while(iss >> token) {
+        // parse token
+    }
+}  
+\end{minted}
+
+To parse individual tokens, string comparison and number parsing library functions can be used, as every token is either a known operator or number.
 
 \begin{minted}{cpp}
 if(tok == "+") {
@@ -133,12 +197,12 @@ if(tok == "+") {
     return new Sub();
 } else if(tok == "/") {
     return new Div();
+} else {
+    return new Num(std::stod(tok));
 }
-
-return new Num(std::stod(tok));
 \end{minted}
 
-Every token is either an operator or a number. For the uninitiated, \verb|std::stod()| is a C++ function to parse a (decimal) number from a string, and \verb|Add()|, \verb|Mul()|, \verb|Sub()|, \verb|Div()| all subclasses of an abstract operation class.
+Here, the function \verb|std::stod()| is a C++ function to parse a number from a string, and \verb|Add()|, \verb|Mul()|, \verb|Sub()|, \verb|Div()| all subclasses of an abstract Operation class.
 
 To represent the stack, the C++ \verb|std::deque<double>| is a good candidate, because it has efficient pop and push operations, but it also allows index-based access to elements, which is useful for displaying the stack.
 
@@ -162,29 +226,25 @@ void Add::execute(std::deque<double> &s) {
 }  
 \end{minted}
 
-There is working example code in the \verb|rpn-calc| folder in this repository with working code that acts as a little reverse polish notation parser.
+Like this, a Reverse-Polish Notation interpreter can be crafted in less than 200 lines of code. 
 
-After every sequence of tokens, it prints out the entire stack, making examining the state very easy.
+There is working example code for this in the \verb|rpn-calc| folder. After every sequence of tokens, it prints out the entire stack, making examining the state very easy.
 
 \begin{verbatim}
 $ make rpn-calc
+...
 $ ./rpn-calc/build/calc-cli
-> 1 2 +
+> 1
+1
+> 2
+1 2
+> +
 3
-> 3 4 +
-3 7
-> +
-10
-> 5 6 +
-10 11
-> 7 8 +
-10 11 15
-> +
-10 26
-> +
-36
+> 3 4 -
+3 -1
+> *
+-3
 \end{verbatim}
-
 This particular interpreter only supports the four basic math operators, but it is very simple to extend the code to make it support more.
 
 In fact, there are existing reverse polish notation interpreters and compilers that support a lot more. There's even one on your printer right now -- we'll get to that one in a bit.
@@ -193,15 +253,13 @@ In fact, there are existing reverse polish notation interpreters and compilers t
 
 \begin{enumerate}
   \item Compile the \verb|rpn-calc| tool from the code in this repository. If you don't have the code, you can extract it from this \textsc{pdf} file as documented in the introduction. Run the \verb|calc-cli| tool and try out some expressions like \verb|1 2 +|.
-  \item Can you translate $1 * 3^{6 - 1} + \frac{2}{4}$ into reverse polish notation?
+
   \item Can you add \verb|^| as exponentiation operator to the interpreter? Hint: create a class named \verb|Exp()|, add an \verb|Exp::execute(...)| method and add it to the parser.
 \end{enumerate}
 
-\section{Implementations}
-
 While it's always good fun and educational to implement reverse polish notation interpreters ourselves, it is perhaps more interesting to examine existing implementations that are already sitting on your system. We can take a look at three particular implementations — \textsc{gnu dc}, Adobe PostScript and Forth. If none of these ring any bells, don't worry. 
 
-\subsection{DC}
+\section{Math with GNU DC}
 
 There are some utilities sitting on almost every \textsc{unix}-like system\footnote{which is most systems these days, taking macOS, iOS and Android into account} that rarely anyone has ever had the pleasure to interact with directly, and yet they have great power.
 
@@ -213,7 +271,7 @@ Out of those obscure utilities, we will take a look at one of them: \textsc{dc}.
 $ man dc
 \end{verbatim}
 
-I won't really be explaining all of what it can do, but we can take a look at some 
+Unlike our previous little calculator, \textsc{dc} does not require that tokens are separated by spaces. Also, it has a lot more operators (commands), which are all single-letter. 
 
 It looks really quite cryptic, especially because it is character-based. It can do simple addition like we did before. One difference is that it does not implicitly print the stack -- but the \verb|p| command exists to print the stack.
 
@@ -222,20 +280,61 @@ $ dc -e "1 2 3 + + p"
 6
 \end{verbatim}
 
-It can do quite a lot more than just adding numbers and printing the result. At this point, we have to leave mathematics a bit behind on this journey, because \textsc{dc} supports some more traditional programming constructs that one would hardly find directly in equations, such as dictionaries and lists.
+It is not limited to working with numbers — by enclosing it in \verb|[| and \verb|]| square brackets, \textsc{dc} can work with strings of text as well. Thus, an example of printing some text looks like this.
 
+\begin{verbatim}
+$ dc -e "[Hello World]p"
+Hello World  
+\end{verbatim}
 
+It is obvious that \textsc{dc} can do quite a lot more than just adding numbers and printing the result. At this point, we have to leave mathematics a bit behind on this journey, and introduce some programming constructs such as dictionaries and lists that are not typically found in a math context.
 
-are leaving mathematics behind a bit and entering into computer science, because 
+Not only can the strings be used for storing text, but also for storing code, which can be executed. Such code can be stored into a register with \verb|sr|, where \verb|r| is a letter denoting which register it is saved to, and run with \verb|x|.
 
-\subsubsection*{Exercises}
+By writing a macro that conditionally calls itself, a loop can be implemented.
+
+\begin{verbatim}
+$ dc -e "[p1-d0<r]sr10lrx"
+10
+9
+8
+...
+1
+\end{verbatim}
+
+To explain how this works, we can take it apart. There is a macro, the string \verb|[p-1d0<r]|, prints the current top of the stack, decrements it by 1, and recursively calls itself if the result of that is not smaller than zero. After that, \verb|sr| saves this macro into register \verb|r|. Next 10 is loaded onto the stack, and the macro in \verb|r| executed with \verb|lrx|. In Table \ref{tlb:dcloop}, the instructions are listed and explained.
+
+\begin{table}[!h]
+\centering
+\caption{Explanation of the \textsc{dc} program.}\label{tlb:dcloop}
+\begin{tabular}{@{}lp{5.7cm}@{}}
+\toprule
+Command & Explanation \\
+\midrule
+\verb|[| & Start string.\\
+\verb|p| & Print top of stack.\\
+\verb|1| & Push 1 on stack.\\
+\verb|-| & Subtract top of stack from second.\\
+\verb|d| & Duplicate top of stack.\\
+\verb|0| & Push 0 on stack.\\
+\verb|<r| & Execute contents of register r if second top is smaller than top of stack.\\
+\verb|]| & End string.\\
+\verb|sr| & Store string in register r.\\
+\verb|10| & Push 10 to stack.\\
+\verb|lr| & Load contents of register r.\\
+\verb|x| & Execute top of stack.\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection*{Exercises}
 
 \begin{enumerate}
   \item Write a \textsc{dc} script that will find the sum of numbers from 1 to 100.
-  \item Write a \textsc{dc} script that will find the first 100 prime numbers.
+  \item Write a \textsc{dc} script that will find the first number larger than 1000.
 \end{enumerate}
 
-\subsection{PostScript}
+\section{PostScript}
 
 PostScript is another one of those things that most people haven't ever heard of or used. But unlike \textsc{dc}, this is something you may very well have used.
 
@@ -249,7 +348,27 @@ Such a program can be considerably smaller, especially for documents that consis
 
 PostScript is implemented as a stack machine. But unlike our small \textsc{rpn} calculator, it is a fairly powerful programming language, supporting functions, variables, arrays and dictionaries.
 
-\subsubsection*{Exercises}
+It is quite impractical to send off a program to a printer and have it burn polymers onto dead tree carcasses every time a it needs to be run. Therefore, there is a project called \emph{GhostScript}, which is a PostScript interpreter that runs on your local system.
+
+An interactive PostScript prompt can be launched with it by running the \verb|gs| executable.\cite{bluebook}
+
+
+
+\begin{verbatim}
+$ gs -dNODISPLAY
+GS> 1 2 add stack
+3
+\end{verbatim}
+
+
+
+
+\begin{minted}{postscript}
+\def  
+\end{minted}
+
+
+\subsection*{Exercises}
 
 \begin{enumerate}
   \item Install GhostScript on your local system (if you are on macOS, it should come preinstalled, otherwise check your package manager).
@@ -258,9 +377,13 @@ PostScript is implemented as a stack machine. But unlike our small \textsc{rpn} 
   \item Can you write a function that will compute the largest common multiple of two numbers?
 \end{enumerate}
 
-\subsection{Forth}
+\section{Forth}
 
 After having taken a look at \textsc{dc} and PostScript, which are both interpreted, higher-level languages, we can now look into a slightly different direction and examine another oddity out of the programming languages world, Forth. 
+
+\section{Obscure Code Golfing with 05AB1E}
+
+
 
 \section{Generating}
 
@@ -285,5 +408,6 @@ We have also seen that it is not
 
 The disadvantage of \textsc{rpn} is that the code is not as readable.
 
+\printbibliography
 
 \end{document}

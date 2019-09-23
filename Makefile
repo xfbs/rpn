@@ -15,6 +15,7 @@
 # needs to have truepolyglot, provide the path to it via the POLYGLOT env var.
 
 LATEX	= lualatex
+BIBER	= biber
 MKDIR	= mkdir -p
 CMAKE	= cmake
 RM		= rm -rf
@@ -29,6 +30,9 @@ build: rpn-calc/build/calc-cli rpn-gen
 
 index.pdf: index.tex _tag.tex
 	$(LATEX) --shell-escape $<
+	$(BIBER) $<
+	$(LATEX) --shell-escape $<
+	$(BIBER) $<
 	$(LATEX) --shell-escape $<
 
 index.zip: $(FILES)
