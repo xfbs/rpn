@@ -5,6 +5,7 @@
 *.bbl
 *.bcf
 *.blg
+*.run.xml
 _minted-index
 .texpadtmp
 .DS_Store

@@ -58,6 +58,7 @@ clean:
 	$(RM) *.bbl
 	$(RM) *.bcf
 	$(RM) *.blg
+	$(RM) *.run.xml
 	$(RM) calc/build
 	$(RM) parse/build
 	$(RM) index.zip
