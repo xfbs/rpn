@@ -352,28 +352,57 @@ It is quite impractical to send off a program to a printer and have it burn poly
 
 An interactive PostScript prompt can be launched with it by running the \verb|gs| executable.\cite{bluebook1985}
 
-
-
 \begin{verbatim}
 $ gs -dNODISPLAY
 GS> 1 2 add stack
 3
 \end{verbatim}
 
-
-
+Similar to \textsc{dc}, PostScript also supports strings, but they are delimited by parentheses and not brackets. 
 
 \begin{minted}{postscript}
-\def  
+(Hello World\n) print  
 \end{minted}
+
+PostScript also supports defining routines. The basic syntax looks like this.
+
+\begin{minted}{postscript}
+/name {
+  % function body
+} def
+\end{minted}
+
+Here, \verb|/name| puts the symbol \emph{name} onto the stack. In the braces is code, which is also put on the stack. The call to \verb|def| pops the name and the code off the stack and defines it.
+
+With this knowledge, and a few basic PostScript commands, recursive fibonacci can be implemented.
+
+\begin{minted}{postscript}
+/fibonacci {
+    % check if these are the first two.
+    dup 2 lt
+
+    {   % if so, return 1.
+        pop
+        1
+    } { % otherwise compute sum of
+        % fibonacci(n-1) and 
+        % fibonacci(n-2)
+        dup 2 sub
+        fibonacci
+        exch 1 sub
+        fibonacci
+        add
+    } ifelse
+} def
+\end{minted}
+
 
 
 \subsection*{Exercises}
 
 \begin{enumerate}
-  \item Install GhostScript on your local system (if you are on macOS, it should come preinstalled, otherwise check your package manager).
-
-    Run some of the PostScript files present in the \verb|postscript| directory. 
+  \item Install GhostScript on your local system (if you are on macOS, it should come preinstalled, otherwise check your package manager) and run the example code in the \verb|postscript| directory.
+ 
   \item Can you write a function that will compute the largest common multiple of two numbers?
 \end{enumerate}
 

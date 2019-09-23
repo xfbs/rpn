@@ -1,0 +1,28 @@
+/fibonacci {
+    % check if these are the first two.
+    dup 2 lt
+
+    {   % if so, return 1.
+        pop
+        1
+    } { % otherwise compute sum of
+        % fibonacci(n-1) and fibonacci(n - 2)
+        dup 2 sub
+        fibonacci
+        exch 1 sub
+        fibonacci
+        add
+    } ifelse
+} def
+
+0 fibonacci
+1 fibonacci
+2 fibonacci
+3 fibonacci
+4 fibonacci
+5 fibonacci
+6 fibonacci
+7 fibonacci
+15 fibonacci
+stack
+quit
