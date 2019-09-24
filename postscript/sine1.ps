@@ -1,0 +1,98 @@
+%!PS-Adobe
+%%BoundingBox: 30 200 650 400
+
+% Sine wave drawing by Toby Thain (mailto:toby@telegraphics.com.au)
+% - straight line approximation
+% - simplistic Bezier curve fitting
+% both governed by "step" parameter (radians)
+
+%    Copyright (C) 2001-3 Toby Thain, toby@telegraphics.com.au
+%
+%    This program is free software; you can redistribute it and/or modify
+%    it under the terms of the GNU General Public License as published by  
+%    the Free Software Foundation; either version 2 of the License, or
+%    (at your option) any later version.
+%
+%    This program is distributed in the hope that it will be useful,
+%    but WITHOUT ANY WARRANTY; without even the implied warranty of
+%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%    GNU General Public License for more details.
+%
+%    You should have received a copy of the GNU General Public License  
+%    along with this program; if not, write to the Free Software
+%    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+/pi 3.14159265 def
+/phase pi 2 div def
+/step pi  def % length of each line/curve segment
+% should not be more than pi/2 radians!
+/curvelength 7 def % curve length in radians
+
+/r2d { 180 pi div mul } def % radians to degrees (approx)
+/f { r2d sin } def % function to plot
+/f' { r2d cos } def % first derivative
+
+/drawpolygon {
+	phase dup f moveto
+	step dup curvelength {  % loop parameters for straight lines (radian units)
+		dup f lineto
+	} for
+} def
+
+/dot { .03 0 360 arc fill } def
+/boxside .06 def
+/box {
+	gsave
+		translate 
+		boxside -2 div dup moveto
+		boxside 0 rlineto
+		0 boxside rlineto 
+		boxside neg 0 rlineto
+		closepath
+		fill
+	grestore
+} def
+
+/drawcurve {
+	/third step 3 div def
+	phase dup f moveto
+	0 step curvelength {  % loop parameters for Bezier approximation
+		phase add
+		/x exch def
+		x third add   x f x f' third mul add 
+		x step third sub add   x step add dup f exch f' third mul sub 
+		x step add   dup f  
+		curveto
+	} for
+} def
+
+/annotate {
+	/third step 3 div def
+	phase dup f moveto
+	0 step curvelength {  % loop parameters for Bezier approximation
+		phase add
+		/x exch def
+		x third add   x f x f' third mul add 
+		x step third sub add   x step add dup f exch f' third mul sub 
+		x step add   dup f  
+		5 index 5 index lineto 
+		3 index 3 index moveto
+		1 index 1 index lineto
+		stroke
+		gsave x -1.2 moveto 0 2.4 rlineto [.05] 0 setdash stroke grestore
+		1 index 1 index moveto
+		gsave newpath box dot dot grestore
+	} for
+} def
+
+% transformation of unit sine wave - x radians, y -1..1
+50 300 translate
+80 80 scale
+
+.01 setlinewidth
+% drawpolygon .7 setgray stroke
+drawcurve .6 setgray stroke
+0 setgray .01 setlinewidth annotate
+%/step pi 8 div def drawcurve 0 setgray [.02 1] 0 setdash stroke
+
+showpage

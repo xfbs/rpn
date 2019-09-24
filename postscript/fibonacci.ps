@@ -1,3 +1,5 @@
+% computes the nth fibonacci number f(n) recursively, where
+% f(0) = f(1) = 1 and f(n) = f(n-1) + f(n-2).
 /fibonacci {
     % check if these are the first two.
     dup 2 lt
@@ -15,14 +17,5 @@
     } ifelse
 } def
 
-0 fibonacci
-1 fibonacci
-2 fibonacci
-3 fibonacci
-4 fibonacci
-5 fibonacci
-6 fibonacci
-7 fibonacci
-15 fibonacci
-stack
-quit
+% print the first 25 fibonacci numbers
+0 1 25 {fibonacci stack pop} for
