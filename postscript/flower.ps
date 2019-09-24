@@ -1,0 +1,14 @@
+%!PS-Adobe-3.0 EPSF-3.0
+0 0 moveto
+/dtheta 2 def
+/a 100 def %scaling
+10 {
+    gsave%one leaf
+    dtheta dtheta 30 {%points per leaf;
+        /6theta exch 6 mul def%30*6=180
+        a 6theta sin mul 0 lineto
+        dtheta 2 mul rotate%2 thickness leaf
+    } for stroke
+    grestore
+    36 rotate%number of leaves 36*10=360
+} repeat showpage

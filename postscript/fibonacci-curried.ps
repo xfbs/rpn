@@ -1,0 +1,42 @@
+% computes the nth fibonacci number f(n) recursively, where
+% f(0) = f(1) = 1 and f(n) = f(n-1) + f(n-2).
+/fibonacci {
+    % make dict large enough to store n fibonacci numbers.
+    dup dict
+
+    % load initial values into dict.
+    dup 0 1 put
+    dup 1 1 put
+
+    % put n at top of stack.
+    exch
+
+    % call implementation.
+    fibonacci-impl
+} def
+
+/fibonacci-impl {
+    % check if this one is cached already
+    1 index 1 index known
+
+    {
+        % get the known result.
+        get
+    }{
+        % compute result.
+        1 index 1 index 2 sub fibonacci-impl
+        2 index 2 index 1 sub fibonacci-impl
+        add
+
+        % save result.
+        dup
+        3 index exch
+        3 index exch
+        put
+
+        % return result
+        exch pop exch pop
+    } ifelse
+} def
+
+99 fibonacci stack quit

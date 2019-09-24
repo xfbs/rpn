@@ -1,6 +1,11 @@
-% Implementation of MD5 in PostScript
-%
-% Written by Patrick M. Elsen <pelsen@xfbs.net>
+%!PS-Adobe-2.0
+%%Title: MD5 hash sum calculator in PostScript
+%%Creator: Patrick M. Elsen [pelsen@xfbs.net] https://github.com/xfbs/rpn
+%%Date: 24. September 2019
+%%EndComments
+
+% run this as
+% gs -dQUIET -dNODISPLAY md5.ps
 
 % assert that last two items on stack are equal
 /assert-eq {
@@ -55,6 +60,7 @@
     16#f7537e82 16#bd3af235 16#2ad7d2bb 16#eb86d391
 ] def
 
+% creates an array with the md5 variables on the stack.
 /md5-variables {[
     16#67452301
     16#efcdab89
@@ -62,4 +68,57 @@
     16#10325476
 ]} def
 
-1 1 assert-eq
+16#67452301 md5-variables 0 get assert-eq
+16#efcdab89 md5-variables 1 get assert-eq
+16#98badcfe md5-variables 2 get assert-eq
+16#10325476 md5-variables 3 get assert-eq
+
+% compute how long (in bytes) this should be after padding. takes the length
+% (in bytes) as argument.
+/md5-pad-length {
+    % add space for one byte of padding and length
+    9 add
+
+    % compute mod difference to next multiple of 64
+    dup
+    64 mod
+    64 exch sub
+    64 mod
+
+    % add to align to multiple of 64
+    add
+} def
+
+0 md5-pad-length 64 assert-eq
+1 md5-pad-length 64 assert-eq
+55 md5-pad-length 64 assert-eq
+56 md5-pad-length 128 assert-eq
+64 md5-pad-length 128 assert-eq
+
+% takes a string and performs md5 padding on it.
+/md5-pad {
+    % push length of string on stack
+    dup length
+
+    % compute pad length
+    dup md5-pad-length
+
+    % generate empty string as large as pad length
+    string
+
+    % copy old string into new
+    dup 3 index exch copy pop
+
+    % add padding byte 128 (which is 0b10000000 in binary).
+    dup
+    2 index
+    128 put
+
+    exch pop
+    exch pop
+} def
+
+(A) md5-pad (A\200\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0) assert-eq
+(ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz) md5-pad (ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz\200\0\0\0\0\0\0\0\0\0\0\0) assert-eq
+
+quit

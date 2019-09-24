@@ -7,6 +7,7 @@
 \usepackage{syntax}
 \usepackage{amsmath}
 \usepackage[backend=biber]{biblatex}
+\usepackage[super]{nth}
 \usepackage{tikz}
 \usepackage{tikz-qtree}
 \usetikzlibrary{shapes,patterns,positioning}
@@ -350,15 +351,15 @@ PostScript is implemented as a stack machine. But unlike our small \textsc{rpn} 
 
 It is quite impractical to send off a program to a printer and have it burn polymers onto dead tree carcasses every time a it needs to be run. Therefore, there is a project called \emph{GhostScript}, which is a PostScript interpreter that runs on your local system.
 
-An interactive PostScript prompt can be launched with it by running the \verb|gs| executable.\cite{bluebook1985}
+An interactive PostScript prompt can be launched with it by running the \verb|gs| executable. The \verb|NODISPLAY| option disables graphical output which is not needed for these text-only examples, and \verb|QUIET| suppresses some output.
 
 \begin{verbatim}
-$ gs -dNODISPLAY
+$ gs -dNODISPLAY -dQUIET
 GS> 1 2 add stack
 3
 \end{verbatim}
 
-Similar to \textsc{dc}, PostScript also supports strings, but they are delimited by parentheses and not brackets. 
+Similar to \textsc{dc}, PostScript also supports strings\cite{bluebook1985}, but they are delimited by parentheses and not brackets. 
 
 \begin{minted}{postscript}
 (Hello World\n) print  
@@ -396,10 +397,66 @@ With this knowledge, and a few basic PostScript commands, recursive fibonacci ca
 } def
 \end{minted}
 
+Using recursion here simplifies the implementation quite a bit, but it has the drawback that the complexity is really bad. So bad, in fact, that it is not possible to compute any larger than the \nth{29} fibonacci number on my machine. Computing the \nth{28} fibonacci number takes more than a million recursion steps.
+
+PostScript offers some advanced data structures like dictionaries and arrays that can be used in this case to implement currying. To accomplish this, the fibonacci function is changed to create a dictionary, fill it with the known initial fibonacci values, and then run the actual implementation.
+
+\begin{minted}{postscript}
+/fibonacci {
+    % make dict large enough to store n fibonacci numbers.
+    dup dict
+
+    % load initial values into dict.
+    dup 0 1 put
+    dup 1 1 put
+
+    % put n at top of stack.
+    exch
+
+    % call implementation.
+    fibonacci-impl
+} def
+\end{minted}
+
+The implementation looks similar to the recursive version from before, with the significant difference that it is passed a dict that it checks for previously computed values.
+
+\begin{minted}{postscript}
+/fibonacci-impl {
+    % check if this one is cached already
+    1 index 1 index known
+
+    {
+        % get the known result.
+        get
+    }{
+        % compute result.
+        1 index 1 index 2 sub fibonacci-impl
+        2 index 2 index 1 sub fibonacci-impl
+        add
+
+        % save result.
+        dup
+        3 index exch
+        3 index exch
+        put
+
+        % return result
+        exch pop exch pop
+    } ifelse
+} def  
+\end{minted}
+
+This implementation can calculate up to at leas the \nth{100} fibonacci number, demonstrating how common data structures can be used in PostScript.
+
 It is evident that this more verbose syntax and the ability to define named procedures is of great benefit when it comes to writing code. Even more complex algorithms can thus be implemented in PostScript.
+
+To illustrate this point, MD5 has been implemented in PostScript, available in the \verb|postscript| folder. It is very addicting to play around with PostScript, and implement common algorithms in it.
+
+But so far, the whole point of PostScript has been missed: PostScript is really intended to be a graphics programming language. It has primitives for drawing lines and curves that can be used in recursive functions for interesting effects.
 
 % https://ntg.nl/maps/46/08.pdf
 % http://paulbourke.net/dataformats/postscript/
+% http://www.math.ubc.ca/~cass/courses/ps.html
 
 \subsection*{Exercises}
 
