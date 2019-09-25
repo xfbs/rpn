@@ -15,6 +15,9 @@
     fibonacci-impl
 } def
 
+% actual recursive implementation. takes a dict and n on the stack, computes
+% the nth fibonacci number by checking if it exists in the dict, and if not,
+% recursively computes and saves result in dict.
 /fibonacci-impl {
     % check if this one is cached already
     1 index 1 index known
@@ -39,4 +42,13 @@
     } ifelse
 } def
 
-99 fibonacci stack quit
+% print the first 100 fibonacci numbers
+0 1 100 {
+    % print n
+    dup =string cvs print
+    ( ) print
+
+    % print fibonacci
+    fibonacci =string cvs print
+    (\n) print
+} for

@@ -18,4 +18,12 @@
 } def
 
 % print the first 25 fibonacci numbers
-0 1 25 {fibonacci stack pop} for
+0 1 25 {
+    % print n
+    dup =string cvs print
+    ( ) print
+
+    % print fibonacci
+    fibonacci =string cvs print
+    (\n) print
+} for
