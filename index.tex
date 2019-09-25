@@ -21,7 +21,7 @@
 
 \addbibresource{references.bib}
 
-\title{Reverse Polish Notation:\\A Gentle Introduction to Stack Machines}
+\title{Reverse Polish Notation and Concatenative Languages}
 \author{Patrick M. Elsen <pelsen@xfbs.net>}
 \date{\input{_tag}}
 
@@ -125,6 +125,12 @@ Table \ref{tlb:simplerpn} illustrates this process in a more organised way. With
 \end{equation}
 
 In a sense, reverse polish notation forms a sort of bridge between the world of mathematics and the world of computer science, because reverse polish notation is both a way to represent equations and a kind of instruction stream that can be processed by a virtual stack machine to evaluate it.
+
+\subsection{Concatentative Language}
+
+One of the interesting properties it has is that it can be parsed with no regard to context. When encountering a token like \verb|+|, it has a defined effect on the stack (consuming two items from the stack, and producing one, the result of the addition).
+
+This has two interesting effects. For once, there are no syntactically invalid programs, because there is no notable syntax. Everything is a stream of tokens. The other effect is that, since there is no context, this is a \emph{concatenative language}. 
 
 \subsection*{Exercises}
 
